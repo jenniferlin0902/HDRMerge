@@ -1,6 +1,15 @@
 Things to install 
 1. DNG to converter 
 https://blogs.mathworks.com/steve/2011/03/08/tips-for-reading-a-camera-raw-file-into-matlab/
+This is used to convert the .dng file downloaded from HDR+ to uncompressed DNG file
 
 
-    
+Download Data 
+0. mkdir data
+1. Follow instruction in 
+    http://www.hdrplusdata.org/dataset.html
+   Note that the entire data set is huge. I only downloaded 20171106_subset/bursts/0006_20160727_185921_651
+   for testing. 
+   Make sure data is in data/20171106_subset/bursts/{:imageId}
+2. Run DNG converter to convert all payload_N00x.dng file to uncompressed dng files and save as 
+    payload_N00x_uncompressed.dng
