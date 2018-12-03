@@ -1,7 +1,7 @@
 %% HDR+ Burst Photography Pipeleline 
 
 %% configs 
-n_frames = 1;
+n_frames = 2;
 
 %% load data
 % data names 
@@ -10,7 +10,7 @@ burstPath = 'data/20171106_subset/bursts/';
 
 % first load first frame to get meta data 
 frameName = 'N000';
-rawFileName = strcat(burstPath, imageId,'/payload_', frameName, '_uncompressed.dng');
+rawFileName = strcat(burstPath, imageId,'/payload_', frameName, '_uncompressed.dng')
 [raw, raw_info, tiff_info] = loadDng(rawFileName);
 
 % store all data in raws (n_frames, w, h)
@@ -19,31 +19,37 @@ raws(1, :, :) = raw;
 
 % read all frames 
 for i = 2:n_frames
-    frameName = strcat('N00', string(i));
-    rawFileName = strcat(burstPath, imageId,'/payload_', frameName, '_uncompressed_mosaic.dng');
-    [raw, a, b] = loadDng(rawFileName);
+    frameName = strcat('N00', string(i-1))
+    rawFileName = strcat(burstPath, imageId,'/payload_', frameName, '_uncompressed.dng')
+    [raw, a, b] = loadDng(char(rawFileName));
      raws(i, :, :) = raw;
 end
+%% Pick reference frame 
+% always pick the first frame for now
+ref_frame = 1;
+img_size = size(squeeze(raws(1,:,:)));
 
 %% Align
 % call align here
+A = alignAll(raws, 1); %[n_frame-1,x,y]
 
 %% Merge 
 % call merge here
+M = mergeAll(A, 1);
 
 %% Post Processing 
 % step 1: Black Level subtraction 
-raw = squeeze(raws(1,:,:));  % comment this out after we have align and merge 
+%M = squeeze(raws(1,:,:));  % comment this out after we have align and merge 
 black_level = reshape(tiff_info.BlackLevel, [2,2]);
 white_level = tiff_info.WhiteLevel;
 B = repmat(black_level, img_size(1)/2, img_size(2)/2);
 W = 65535./(white_level - B);
-raw_bs = (raw - B).*W;
+raw_bs = (M - B).*W;
 %imshow(raw_bs./(65535/256))
 
 % step 2: Lens shading correction 
 % get lens shading 
-lensfileName = strcat(burstPath, imageId,'/lens_shading_map_', frameName, '.tiff');
+lensfileName = char(strcat(burstPath, imageId,'/lens_shading_map_', frameName, '.tiff'));
 info = imfinfo(lensfileName);
 lensData = importdata(lensfileName);
 corrected = lensShading(raw_bs, lensData);
@@ -56,7 +62,6 @@ white_coeff = [white_coeff(1), white_coeff(2), white_coeff(2), white_coeff(3)];
 white_coeff = reshape(white_coeff, [2,2]);
 WB = repmat(white_coeff, img_size(1)/2, img_size(2)/2);
 corrected = corrected./ WB;
-% imshow(corrected./(65535/256))
 
 % step4: Demosaic 
 options.filter='rggb';
