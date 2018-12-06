@@ -13,6 +13,13 @@ frameName = 'N000';
 rawFileName = strcat(burstPath, imageId,'/payload_', frameName, '_uncompressed.dng')
 [raw, raw_info, tiff_info] = loadDng(rawFileName);
 
+% make sure img size is multiple of 64
+raw_size = size(raw);
+pad_size = ceil(raw_size/64)*64 - raw_size;
+assert(mod(pad_size(1)/2,2) == 0);
+assert(mod(pad_size(2)/2,2) == 0);
+raw = padarray(raw, pad_size/2);
+
 % store all data in raws (n_frames, w, h)
 raws = zeros([n_frames,size(raw)]);
 raws(1, :, :) = raw;
@@ -22,19 +29,23 @@ for i = 2:n_frames
     frameName = strcat('N00', string(i-1))
     rawFileName = strcat(burstPath, imageId,'/payload_', frameName, '_uncompressed.dng')
     [raw, a, b] = loadDng(char(rawFileName));
+    raw = padarray(raw, pad_size/2);
      raws(i, :, :) = raw;
 end
-%% Pick reference frame 
+
+%% Pick reference frame
 % always pick the first frame for now
 ref_frame = 1;
+% crop img 
+%raws = raws(:,1:1024,1:512);
 img_size = size(squeeze(raws(1,:,:)));
 
 %% Align
-% call align here
 A = alignAll(raws, 1); %[n_frame-1,x,y]
 
+% cropped out padding
+A = A(:, pad_size(1):end-pad_size(1),pad_size(2):end-pad_size(2));
 %% Merge 
-% call merge here
 M = mergeAll(A, 1);
 
 %% Post Processing 
