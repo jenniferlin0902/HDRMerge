@@ -1,16 +1,15 @@
 
-x = imread('test_imgs/set2/ref.png'); 
-y = imread('test_imgs/set2/x_shift_0_y_shift_5.png');
+[x,map] = imread('test_imgs/set2/ref.bmp'); 
+[y,map] = imread('test_imgs/set2/x_shift_0_y_shift_5.bmp');
+imshow(x,map)
+imshow(y,map)
 x = imresize(x, 4); 
 y = imresize(y, 4);
-imshow(x)
-imshow(y)
-x_grayscale = mean(x, 3);
-y_grayscale = mean(y, 3);
-size(x_grayscale)
+imshow(x,map)
+imshow(y,map)
 raws = zeros(2, 1024, 1024);
-raws(1, :, :) = x_grayscale; 
-raws(2, :, :) = y_grayscale; 
+raws(1, :, :) = x; 
+raws(2, :, :) = y; 
 raws = double(raws); 
 
 
@@ -20,7 +19,7 @@ imshow(squeeze(A(2,:,:)))
 
 % 
 %% Merge
-M = mergeAll(raws, 1);
+M = mergeAll(A, 1);
 
 imshow(M); 
 

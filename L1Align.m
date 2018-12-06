@@ -22,7 +22,7 @@ function A_tile = L1Align(ref, alt, prev_align, tilesize, r)
     
     % mirror pad alt
     abs_disp = abs(prev_align);
-    pad_size = max(r, max(abs_disp(:)));
+    pad_size = max(r, max(abs_disp(:)))+4;
     alt_pad = padarray(alt,[pad_size,pad_size], 'symmetric');
         
     % apply each displacement to pixel
