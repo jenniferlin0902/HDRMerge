@@ -1,3 +1,4 @@
+
 x = imread('test_imgs/set2/ref.png'); 
 y = imread('test_imgs/set2/x_shift_0_y_shift_5.png');
 x = imresize(x, 4); 
@@ -22,4 +23,5 @@ imshow(squeeze(A(2,:,:)))
 M = mergeAll(raws, 1);
 
 imshow(M); 
+
 imwrite(M, 'with_align.png'); 
