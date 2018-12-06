@@ -43,8 +43,6 @@ img_size = size(squeeze(raws(1,:,:)));
 %% Align
 A = alignAll(raws, 1); %[n_frame-1,x,y]
 
-% cropped out padding
-A = A(:, pad_size(1):end-pad_size(1),pad_size(2):end-pad_size(2));
 %% Merge 
 M = mergeAll(A, 1);
 
@@ -85,6 +83,9 @@ img_dim = size(img); % save img dim to reshape back
 flat_img = double(reshape(img, [], 3));
 srgb_flat_img = flat_img * srgb_matrix;
 srgb_img = uint16(reshape(srgb_flat_img, [img_dim(1), img_dim(2), 3]));
+
+%cropped out padding
+srgb_img = srgb_img(pad_size(1):end-pad_size(1),pad_size(2):end-pad_size(2),:);
 imshow(srgb_img)
 size(srgb_img)
 
