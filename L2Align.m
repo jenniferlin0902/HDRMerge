@@ -13,15 +13,17 @@ function A_tile = L2Align(ref, alt, prev_align, tilesize, r)
     %                                                      y_size/tilesize]
     ref = squeeze(ref);
     alt = squeeze(alt);
-    [x_size, y_size] = size(ref);
-    
-    disp(x_size); 
-    disp(y_size); 
     % create grid that contain all possible displacement 
     i = -r : r;
     [I,I] = meshgrid(i,i);
     grid=cat(2,I',I);
     alignments = reshape(grid,[],2); % possible alignment indices
+    
+    % pad raw and alt so that each dimension is multiple of tile_size 
+    t_pad_size = ceil(size(ref)/tilesize)*tilesize - size(ref);
+    ref = padarray(ref, t_pad_size, 0, 'post');
+    alt = padarray(alt, t_pad_size, 0, 'post');
+    [x_size, y_size] = size(ref);
     
     % mirror pad alt
     abs_disp = abs(prev_align);
