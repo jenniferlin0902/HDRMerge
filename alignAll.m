@@ -1,8 +1,8 @@
 function A_all = alignAll(raws, ref)
     % constants
     ds_factors = [2,4,4];
-    search_radius = [1, 4, 4, 4];
-    tile_sizes = [4, 4, 4, 2];
+    search_radius = [1, 2, 2, 2];
+    tile_sizes = [2, 2, 2, 2];
     n_frames = size(raws, 1);
     
     %% downsample imgs 
@@ -21,7 +21,7 @@ function A_all = alignAll(raws, ref)
             % map up l4align ds4_size/tile_size -> ds4_size * ds_factor(3)
             % and scale up by ds_factor
             l4align = repelem(l4align, tile_sizes(4) * ds_factors(3), tile_sizes(4) * ds_factors(3),1)*ds_factors(3);
-
+            
             % level 3:
             l3align = L2Align(ds3(ref,:,:), ds3(i,:,:), l4align, tile_sizes(3), search_radius(3));
             % map up l3align 

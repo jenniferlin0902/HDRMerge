@@ -1,8 +1,8 @@
 %% HDR+ Burst Photography Pipeleline (on .DNG)
 
 %% configs 
-n_frames = 2;
-
+n_frames = 4;
+noise = 0.1;
 %% load data
 % data names 
 imageId = '0006_20160727_185921_651';
@@ -19,8 +19,10 @@ pad_size = ceil(raw_size/64)*64 - raw_size;
 assert(mod(pad_size(1)/2,2) == 0);
 assert(mod(pad_size(2)/2,2) == 0);
 raw = padarray(raw, pad_size/2);
-
-% store all data in raws (n_frames, w, h)
+raw_size = size(raw);
+raw = raw + normrnd(0, mean2(raw)*noise, [raw_size(1),raw_size(2)]);
+% 
+% % store all data in raws (n_frames, w, h)
 raws = zeros([n_frames,size(raw)]);
 raws(1, :, :) = raw;
 
@@ -30,21 +32,27 @@ for i = 2:n_frames
     rawFileName = strcat(burstPath, imageId,'/payload_', frameName, '_uncompressed.dng')
     [raw, a, b] = loadDng(char(rawFileName));
     raw = padarray(raw, pad_size/2);
-     raws(i, :, :) = raw;
+    raw_size = size(raw);
+    raw = raw + normrnd(0, mean2(raw)*noise, [raw_size(1),raw_size(2)]);
+    raws(i, :, :) = raw;
 end
 
-%% Pick reference frame
+% Pick reference frame
 % always pick the first frame for now
 ref_frame = 1;
 % crop img 
-%raws = raws(:,1:1024,1:512);
+% raws = raws(:,1:1024,1:512);
 img_size = size(squeeze(raws(1,:,:)));
 
 %% Align
 A = alignAll(raws, 1); %[n_frame-1,x,y]
-
+save('woman_hdr_aligned_01noise_4frame.mat', 'A');
+% load('/woman_hdr_aligned_noise_4frame.mat', 'A');
 %% Merge 
-M = mergeAll(A, 1,1);
+M = mergeAll(A, 1, 1);
+
+% save('tree_hdr_merged_4frame.mat', 'M');
+% load('hdr_merged.mat', 'M');
 
 %% Post Processing 
 % step 1: Black Level subtraction 
@@ -58,11 +66,12 @@ raw_bs = (M - B).*W;
 
 % step 2: Lens shading correction 
 % get lens shading 
-lensfileName = char(strcat(burstPath, imageId,'/lens_shading_map_', frameName, '.tiff'));
-info = imfinfo(lensfileName);
-lensData = importdata(lensfileName);
-corrected = lensShading(raw_bs, lensData);
+% lensfileName = char(strcat(burstPath, imageId,'/lens_shading_map_', frameName, '.tiff'));
+% info = imfinfo(lensfileName);
+% lensData = importdata(lensfileName);
+% corrected = lensShading(raw_bs, lensData);
 %imshow(corrected)
+corrected = raw_bs;
 
 % step3: White Balancing 
 % scales each channel by the white_coeff found in TIFF tag
@@ -73,7 +82,7 @@ WB = repmat(white_coeff, img_size(1)/2, img_size(2)/2);
 corrected = corrected./ WB;
 
 % step4: Demosaic 
-options.filter='rggb';
+options.filter='bggr';
 img=demosaic(uint16(corrected),options.filter);
 
 % step5: convert to sRGB space 
@@ -90,7 +99,7 @@ imshow(srgb_img);
 % srgb_img = srgb_img(pad_size(1):end-pad_size(1),pad_size(2):end-pad_size(2),:);
 % imshow(srgb_img)
 % size(srgb_img)
-I = imadjust(srgb_img, [0.1, 0.9], [], 0.5); % longer exposure imaage 
+I = imadjust(srgb_img, [], [], 0.5); % longer exposure imaage 
 figure;
 imshow(I);
 J = blendexposure(I, srgb_img);
